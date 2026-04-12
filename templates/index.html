@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SecureTransfer — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050810;--surface:#0c1120;--surface2:#111827;
+  --border:rgba(99,179,237,0.12);--accent:#38bdf8;--accent2:#818cf8;
+  --danger:#f87171;--text:#e2e8f0;--muted:#64748b;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(56,189,248,0.03) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(56,189,248,0.03) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;}
+.glow{position:fixed;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(56,189,248,0.06) 0%,transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+.card{position:relative;z-index:2;width:100%;max-width:440px;padding:40px 36px;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  box-shadow:0 0 60px rgba(0,0,0,0.5);}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;letter-spacing:-0.02em;}
+.logo-text span{color:var(--accent);}
+.tabs{display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:8px;margin-bottom:28px;}
+.tab{flex:1;padding:8px;text-align:center;font-size:12px;letter-spacing:0.08em;
+  text-transform:uppercase;border-radius:6px;cursor:pointer;
+  color:var(--muted);transition:all 0.2s;}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.3);}
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:7px;}
+input,select{width:100%;padding:10px 13px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:6px;color:var(--text);
+  font-family:'DM Mono',monospace;font-size:13px;outline:none;
+  transition:border-color 0.2s;}
+input:focus,select:focus{border-color:var(--accent);}
+select option{background:var(--surface2);}
+.btn{width:100%;padding:12px;margin-top:8px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+  border:none;border-radius:6px;color:#050810;font-family:'Syne',sans-serif;
+  font-weight:700;font-size:14px;letter-spacing:0.05em;cursor:pointer;
+  transition:opacity 0.2s,transform 0.1s;}
+.btn:hover{opacity:0.9;transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.msg{padding:10px 13px;border-radius:6px;font-size:12px;margin-top:12px;
+  display:none;line-height:1.5;}
+.msg.error{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:var(--danger);}
+.msg.success{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:#34d399;}
+.panel{display:none;}.panel.active{display:block;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🔐</div>
+    <div class="logo-text">Secure<span>Transfer</span></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('login')">Login</div>
+    <div class="tab" onclick="switchTab('register')">Register</div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="panel active" id="panel-login">
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="l-user" placeholder="Enter username" autocomplete="username"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="l-pass" placeholder="Enter password" autocomplete="current-password"/>
+    </div>
+    <button class="btn" onclick="doLogin()">Sign In</button>
+    <div class="msg" id="l-msg"></div>
+  </div>
+
+  <!-- REGISTER -->
+  <div class="panel" id="panel-register">
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="r-user" placeholder="Choose a username"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="r-pass" placeholder="Min 8 characters"/>
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="r-role">
+        <option value="receiver">Receiver — can download files</option>
+        <option value="sender">Sender — can upload files</option>
+        <option value="viewer">Viewer — can view audit logs</option>
+      </select>
+    </div>
+    <button class="btn" onclick="doRegister()">Create Account</button>
+    <div class="msg" id="r-msg"></div>
+  </div>
+</div>
+
+<script>
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',
+    (i===0&&t==='login')||(i===1&&t==='register')));
+  document.getElementById('panel-login').classList.toggle('active',t==='login');
+  document.getElementById('panel-register').classList.toggle('active',t==='register');
+}
+
+function showMsg(id, text, type){
+  const el=document.getElementById(id);
+  el.textContent=text; el.className='msg '+type; el.style.display='block';
+}
+
+async function doLogin(){
+  const u=document.getElementById('l-user').value.trim();
+  const p=document.getElementById('l-pass').value;
+  if(!u||!p){showMsg('l-msg','Please fill in all fields','error');return;}
+  showMsg('l-msg','Authenticating...','');
+  document.getElementById('l-msg').innerHTML='<span class="spinner"></span>Authenticating…';
+  document.getElementById('l-msg').style.display='block';
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:u,password:p}),credentials:'include'});
+    const d=await r.json();
+    if(r.ok){showMsg('l-msg','Login successful! Redirecting…','success');
+      setTimeout(()=>window.location='/dashboard',800);}
+    else{showMsg('l-msg',d.error||'Login failed','error');}
+  }catch(e){showMsg('l-msg','Network error. Is the server running?','error');}
+}
+
+async function doRegister(){
+  const u=document.getElementById('r-user').value.trim();
+  const p=document.getElementById('r-pass').value;
+  const role=document.getElementById('r-role').value;
+  if(!u||!p){showMsg('r-msg','Please fill in all fields','error');return;}
+  document.getElementById('r-msg').innerHTML='<span class="spinner"></span>Creating account…';
+  document.getElementById('r-msg').style.display='block';
+  try{
+    const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:u,password:p,role})});
+    const d=await r.json();
+    if(r.ok){showMsg('r-msg','Account created! You can now log in.','success');
+      setTimeout(()=>switchTab('login'),1200);}
+    else{showMsg('r-msg',d.error||'Registration failed','error');}
+  }catch(e){showMsg('r-msg','Network error','error');}
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    if(document.getElementById('panel-login').classList.contains('active'))doLogin();
+    else doRegister();
+  }
+});
+</script>
+</body>
+</html>

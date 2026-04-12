@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SecureTransfer — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050810;--surface:#0c1120;--surface2:#111827;--surface3:#1e293b;
+  --border:rgba(99,179,237,0.12);--accent:#38bdf8;--accent2:#818cf8;
+  --accent3:#34d399;--danger:#f87171;--warn:#fbbf24;
+  --text:#e2e8f0;--muted:#64748b;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(56,189,248,0.025) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(56,189,248,0.025) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(5,8,16,0.9);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+  padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;letter-spacing:-0.02em;}
+.nav-brand span{color:var(--accent);}
+.nav-right{display:flex;align-items:center;gap:16px;font-size:12px;}
+.role-badge{padding:3px 10px;border-radius:100px;border:1px solid var(--border);
+  color:var(--accent2);background:rgba(129,140,248,0.1);letter-spacing:0.08em;}
+.btn-logout{padding:6px 14px;background:transparent;border:1px solid rgba(248,113,113,0.3);
+  border-radius:6px;color:var(--danger);font-family:'DM Mono',monospace;font-size:11px;
+  cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;}
+.btn-logout:hover{background:rgba(248,113,113,0.1);}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 56px);position:relative;z-index:1;}
+.sidebar{border-right:1px solid var(--border);padding:24px 0;}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;
+  font-size:12px;letter-spacing:0.06em;color:var(--muted);cursor:pointer;
+  transition:all 0.15s;border-left:2px solid transparent;}
+.sidebar-item:hover{color:var(--text);background:rgba(56,189,248,0.05);}
+.sidebar-item.active{color:var(--accent);border-left-color:var(--accent);
+  background:rgba(56,189,248,0.07);}
+.sidebar-icon{font-size:15px;width:20px;text-align:center;}
+.sidebar-sep{height:1px;background:var(--border);margin:12px 20px;}
+
+.main{padding:32px 28px;overflow-y:auto;}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:28px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 20px;}
+.stat-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.stat-val{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;line-height:1;}
+.stat-card.blue .stat-val{color:var(--accent);}
+.stat-card.violet .stat-val{color:var(--accent2);}
+.stat-card.green .stat-val{color:var(--accent3);}
+.stat-card.red .stat-val{color:var(--danger);}
+.stat-card.yellow .stat-val{color:var(--warn);}
+
+/* SECTION */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:20px;}
+.section-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;
+  letter-spacing:-0.01em;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+.section-title .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+
+/* FORMS */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
+input[type=text],input[type=file],select{
+  background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  color:var(--text);font-family:'DM Mono',monospace;font-size:12px;
+  padding:9px 12px;outline:none;transition:border-color 0.2s;width:100%;}
+input:focus,select:focus{border-color:var(--accent);}
+input[type=file]{cursor:pointer;}
+select option{background:var(--surface2);}
+.btn{padding:10px 20px;border-radius:6px;border:none;font-family:'Syne',sans-serif;
+  font-weight:700;font-size:12px;letter-spacing:0.06em;cursor:pointer;transition:all 0.2s;}
+.btn-primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#050810;}
+.btn-primary:hover{opacity:0.88;transform:translateY(-1px);}
+.btn-secondary{background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm{padding:5px 12px;font-size:11px;}
+
+/* FILE LIST */
+.file-table{width:100%;border-collapse:collapse;font-size:12px;}
+.file-table th{text-align:left;padding:8px 12px;font-size:10px;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+.file-table td{padding:10px 12px;border-bottom:1px solid rgba(99,179,237,0.06);vertical-align:middle;}
+.file-table tr:hover td{background:rgba(56,189,248,0.03);}
+.hash-cell{font-size:10px;color:var(--muted);max-width:140px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
+.size-badge{font-size:10px;color:var(--accent3);}
+
+/* AUDIT LOG */
+.audit-row{display:grid;grid-template-columns:180px 160px 100px 80px 1fr;
+  gap:10px;padding:8px 12px;border-bottom:1px solid rgba(99,179,237,0.05);
+  font-size:11px;align-items:center;}
+.audit-row.header{color:var(--muted);font-size:10px;letter-spacing:0.1em;
+  text-transform:uppercase;border-bottom:1px solid var(--border);}
+.outcome-ok{color:var(--accent3);}
+.outcome-fail{color:var(--danger);}
+.sev-warn{color:var(--warn);}
+.sev-crit{color:var(--danger);}
+.chain-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+  border-radius:100px;font-size:11px;border:1px solid;}
+.chain-ok{color:var(--accent3);border-color:rgba(52,211,153,0.3);background:rgba(52,211,153,0.08);}
+.chain-bad{color:var(--danger);border-color:rgba(248,113,113,0.3);background:rgba(248,113,113,0.08);}
+
+/* MSG */
+.msg{padding:10px 14px;border-radius:6px;font-size:12px;margin-top:12px;display:none;line-height:1.6;}
+.msg.error{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);color:var(--danger);}
+.msg.success{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);color:#34d399;}
+.msg.info{background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);color:var(--accent);}
+
+/* PANELS */
+.panel{display:none;}.panel.active{display:block;}
+
+/* KEY CARD */
+.key-box{background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+  padding:12px;font-size:10px;color:var(--muted);word-break:break-all;
+  max-height:100px;overflow-y:auto;line-height:1.6;margin-top:10px;}
+
+/* SPINNER */
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,0.3);
+  border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;
+  vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* STATUS DOT */
+.live{display:inline-block;width:7px;height:7px;background:var(--accent3);border-radius:50%;
+  animation:pulse 2s infinite;margin-right:6px;vertical-align:middle;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+@media(max-width:700px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .form-row{grid-template-columns:1fr;}
+  .audit-row{grid-template-columns:1fr 1fr;gap:4px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">🔐 Secure<span>Transfer</span></div>
+  <div class="nav-right">
+    <span id="nav-user" style="color:var(--muted);font-size:12px;"></span>
+    <span class="role-badge" id="nav-role">loading...</span>
+    <button class="btn-logout" onclick="doLogout()">Logout</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-item active" onclick="showPanel('overview')">
+      <span class="sidebar-icon">📊</span>Overview
+    </div>
+    <div class="sidebar-item" onclick="showPanel('upload')">
+      <span class="sidebar-icon">🔒</span>Encrypt & Send
+    </div>
+    <div class="sidebar-item" onclick="showPanel('download')">
+      <span class="sidebar-icon">📥</span>Receive & Decrypt
+    </div>
+    <div class="sidebar-item" onclick="showPanel('files')">
+      <span class="sidebar-icon">📁</span>File Store
+    </div>
+    <div class="sidebar-sep"></div>
+    <div class="sidebar-item" onclick="showPanel('keys')">
+      <span class="sidebar-icon">🗝️</span>Key Management
+    </div>
+    <div class="sidebar-item" onclick="showPanel('audit')">
+      <span class="sidebar-icon">📋</span>Audit Log
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <div class="panel active" id="panel-overview">
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card blue"><div class="stat-label">Total Events</div><div class="stat-val" id="s-total">—</div></div>
+        <div class="stat-card green"><div class="stat-label">Transfers OK</div><div class="stat-val" id="s-transfers">—</div></div>
+        <div class="stat-card red"><div class="stat-label">Failures</div><div class="stat-val" id="s-failures">—</div></div>
+        <div class="stat-card violet"><div class="stat-label">Integrity Pass</div><div class="stat-val" id="s-intok">—</div></div>
+        <div class="stat-card yellow"><div class="stat-label">Login Failures</div><div class="stat-val" id="s-loginfail">—</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><span class="dot"></span>System Health</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;">
+          <span><span class="live"></span>Server Online</span>
+          <span id="chain-status">Checking log integrity…</span>
+          <span style="color:var(--muted)">Encryption: AES-256-GCM</span>
+          <span style="color:var(--muted)">Key Exchange: RSA-2048 OAEP</span>
+          <span style="color:var(--muted)">Hashing: SHA-256</span>
+          <span style="color:var(--muted)">Auth: Argon2id</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title"><span class="dot"></span>Recent Activity</div>
+        <div id="recent-events" style="font-size:12px;color:var(--muted);">Loading…</div>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="panel" id="panel-upload">
+      <div class="section">
+        <div class="section-title"><span class="dot"></span>Encrypt & Send File</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Select File</label>
+            <input type="file" id="upload-file"/>
+          </div>
+          <div class="form-group">
+            <label>Recipient Username</label>
+            <input type="text" id="upload-recipient" placeholder="e.g. alice"/>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.7;">
+          ⚠️ The recipient must have generated their RSA keys before you can send.<br/>
+          ✓ File will be AES-256-GCM encrypted on this device before upload.<br/>
+          ✓ Session key wrapped with recipient's RSA-2048 public key.
+        </div>
+        <button class="btn btn-primary" onclick="doUpload()">🔒 Encrypt & Upload</button>
+        <div class="msg" id="upload-msg"></div>
+
+        <div id="upload-result" style="display:none;margin-top:16px;">
+          <div class="section" style="background:var(--surface2);margin:0;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:0.1em;text-transform:uppercase;">Transfer Receipt — Save This!</div>
+            <div style="display:grid;gap:8px;font-size:12px;">
+              <div><span style="color:var(--muted)">Transfer ID: </span><span id="res-tid" style="color:var(--accent)"></span></div>
+              <div><span style="color:var(--muted)">File Hash (SHA-256): </span><span id="res-hash" style="color:var(--accent3);word-break:break-all;"></span></div>
+              <div><span style="color:var(--muted)">Size: </span><span id="res-size"></span></div>
+              <div><span style="color:var(--muted)">Chunks: </span><span id="res-chunks"></span></div>
+            </div>
+            <div style="margin-top:12px;">
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Wrapped Session Key (send to recipient separately)</div>
+              <div class="key-box" id="res-wkey"></div>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="margin-top:10px;" onclick="copyReceipt()">Copy Receipt</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOWNLOAD -->
+    <div class="panel" id="panel-download">
+      <div class="section">
+        <div class="section-title"><span class="dot"></span>Receive & Decrypt File</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.7;">
+          ✓ You need the Transfer ID and Wrapped Session Key from the sender.<br/>
+          ✓ Your RSA private key (in memory) will unwrap the session key.<br/>
+          ✓ SHA-256 integrity is verified before file is served to you.
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label>Transfer ID</label>
+          <input type="text" id="dl-tid" placeholder="Paste transfer ID here"/>
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label>Wrapped Session Key</label>
+          <input type="text" id="dl-wkey" placeholder="Paste wrapped key from sender"/>
+        </div>
+        <button class="btn btn-primary" onclick="doDownload()">🔓 Decrypt & Download</button>
+        <div class="msg" id="dl-msg"></div>
+      </div>
+    </div>
+
+    <!-- FILE STORE -->
+    <div class="panel" id="panel-files">
+      <div class="section">
+        <div class="section-title"><span class="dot"></span>Encrypted File Store
+          <button class="btn btn-secondary btn-sm" style="margin-left:auto;" onclick="loadFiles()">↻ Refresh</button>
+        </div>
+        <table class="file-table">
+          <thead>
+            <tr>
+              <th>Filename</th>
+              <th>Sender</th>
+              <th>Size</th>
+              <th>Chunks</th>
+              <th>SHA-256</th>
+              <th>Transfer ID</th>
+            </tr>
+          </thead>
+          <tbody id="files-tbody">
+            <tr><td colspan="6" style="color:var(--muted);padding:20px 12px;font-size:12px;">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- KEYS -->
+    <div class="panel" id="panel-keys">
+      <div class="section">
+        <div class="section-title"><span class="dot"></span>RSA Key Management</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:16px;">
+          Generate a 2048-bit RSA key pair. Your <strong style="color:var(--text)">private key stays in server memory</strong> 
+          (never written to disk). Your public key is stored in the database so senders can encrypt session keys for you.<br/>
+          ⚠️ Regenerating keys will invalidate any wrapped keys sent before.
+        </div>
+        <button class="btn btn-primary" onclick="doKeygen()">🗝️ Generate RSA Key Pair</button>
+        <div class="msg" id="key-msg"></div>
+        <div id="key-result" style="display:none;margin-top:14px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Your Public Key (PEM)</div>
+          <div class="key-box" id="pub-key-display"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUDIT -->
+    <div class="panel" id="panel-audit">
+      <div class="section">
+        <div class="section-title"><span class="dot"></span>Audit Log
+          <span id="chain-audit-badge" style="margin-left:auto;"></span>
+          <button class="btn btn-secondary btn-sm" onclick="loadAudit()">↻ Refresh</button>
+        </div>
+        <div class="audit-row header">
+          <span>Timestamp</span><span>Event</span><span>User</span><span>Outcome</span><span>Detail</span>
+        </div>
+        <div id="audit-rows" style="font-size:11px;max-height:500px;overflow-y:auto;">
+          <div style="padding:16px 12px;color:var(--muted);">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+let currentUser = null;
+let lastUploadResult = null;
+
+// ── Init ───────────────────────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  await loadUserInfo();
+  await loadStats();
+  await loadRecentEvents();
+});
+
+async function loadUserInfo(){
+  // Get user info from stats endpoint (just to confirm session)
+  const r = await fetch('/api/health');
+  // Decode username from nav
+  const nav = document.getElementById('nav-user');
+  // We'll pull it from the audit endpoint fallback
+  nav.textContent = ''; // will be set on login redirect
+}
+
+// ── Panel switching ────────────────────────────────────────────────────
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  const items = document.querySelectorAll('.sidebar-item');
+  const map = {overview:0,upload:1,download:2,files:3,keys:4,audit:5};
+  if(map[name] !== undefined) items[map[name]].classList.add('active');
+  if(name === 'files') loadFiles();
+  if(name === 'audit') loadAudit();
+  if(name === 'overview') loadStats();
+}
+
+// ── Stats ──────────────────────────────────────────────────────────────
+async function loadStats(){
+  try{
+    const r = await fetch('/api/stats', {credentials:'include'});
+    if(!r.ok) return;
+    const d = await r.json();
+    document.getElementById('s-total').textContent     = d.total_events;
+    document.getElementById('s-transfers').textContent = d.successful_transfers;
+    document.getElementById('s-failures').textContent  = d.failed_events;
+    document.getElementById('s-intok').textContent     = d.integrity_pass;
+    document.getElementById('s-loginfail').textContent = d.login_failures;
+    const chain = d.log_chain_integrity;
+    document.getElementById('chain-status').innerHTML = chain
+      ? '<span style="color:var(--accent3)">✓ Log Chain Intact</span>'
+      : '<span style="color:var(--danger)">✗ Log Chain BROKEN</span>';
+  }catch(e){}
+}
+
+async function loadRecentEvents(){
+  try{
+    const r = await fetch('/api/audit?limit=5', {credentials:'include'});
+    if(!r.ok){ document.getElementById('recent-events').textContent='Insufficient permissions.'; return; }
+    const events = await r.json();
+    if(!events.length){ document.getElementById('recent-events').textContent='No events yet.'; return; }
+    document.getElementById('recent-events').innerHTML = events.map(e =>
+      `<div style="padding:6px 0;border-bottom:1px solid rgba(99,179,237,0.06);display:flex;gap:12px;align-items:center;">
+        <span style="color:var(--muted);font-size:10px;white-space:nowrap;">${e.ts.slice(0,19).replace('T',' ')}</span>
+        <span style="color:var(--accent2);">${e.event}</span>
+        <span style="color:var(--muted);">${e.username||''}</span>
+        <span class="${e.outcome==='SUCCESS'?'outcome-ok':'outcome-fail'}">${e.outcome}</span>
+      </div>`
+    ).join('');
+  }catch(e){}
+}
+
+// ── Keygen ─────────────────────────────────────────────────────────────
+async function doKeygen(){
+  showMsg('key-msg','<span class="spinner"></span>Generating 2048-bit RSA key pair…','info');
+  try{
+    const r = await fetch('/api/keygen',{method:'POST',credentials:'include'});
+    const d = await r.json();
+    if(r.ok){
+      showMsg('key-msg','✓ Key pair generated. Public key stored in database.','success');
+      document.getElementById('pub-key-display').textContent = d.public_key_pem;
+      document.getElementById('key-result').style.display='block';
+    } else {
+      showMsg('key-msg', d.error||'Failed','error');
+    }
+  }catch(e){ showMsg('key-msg','Network error','error'); }
+}
+
+// ── Upload ─────────────────────────────────────────────────────────────
+async function doUpload(){
+  const fileInput = document.getElementById('upload-file');
+  const recipient = document.getElementById('upload-recipient').value.trim();
+  if(!fileInput.files.length){ showMsg('upload-msg','Please select a file','error'); return; }
+  if(!recipient){ showMsg('upload-msg','Please enter recipient username','error'); return; }
+
+  showMsg('upload-msg','<span class="spinner"></span>Encrypting and uploading…','info');
+  document.getElementById('upload-result').style.display='none';
+
+  const fd = new FormData();
+  fd.append('file', fileInput.files[0]);
+  fd.append('recipient', recipient);
+
+  try{
+    const r = await fetch('/api/upload',{method:'POST',body:fd,credentials:'include'});
+    const d = await r.json();
+    if(r.ok){
+      showMsg('upload-msg','✓ File encrypted and stored successfully.','success');
+      lastUploadResult = d;
+      document.getElementById('res-tid').textContent    = d.transfer_id;
+      document.getElementById('res-hash').textContent   = d.file_hash;
+      document.getElementById('res-size').textContent   = formatSize(d.file_size);
+      document.getElementById('res-chunks').textContent = d.total_chunks;
+      document.getElementById('res-wkey').textContent   = d.wrapped_session_key;
+      document.getElementById('upload-result').style.display='block';
+    } else {
+      showMsg('upload-msg', d.error||'Upload failed','error');
+    }
+  }catch(e){ showMsg('upload-msg','Network error: '+e.message,'error'); }
+}
+
+function copyReceipt(){
+  if(!lastUploadResult) return;
+  const txt = `Transfer ID: ${lastUploadResult.transfer_id}\nFile: ${lastUploadResult.original_name}\nHash: ${lastUploadResult.file_hash}\nWrapped Key: ${lastUploadResult.wrapped_session_key}`;
+  navigator.clipboard.writeText(txt).then(()=> alert('Receipt copied to clipboard!'));
+}
+
+// ── Download ───────────────────────────────────────────────────────────
+async function doDownload(){
+  const tid  = document.getElementById('dl-tid').value.trim();
+  const wkey = document.getElementById('dl-wkey').value.trim();
+  if(!tid||!wkey){ showMsg('dl-msg','Both fields are required','error'); return; }
+
+  showMsg('dl-msg','<span class="spinner"></span>Decrypting and verifying integrity…','info');
+  try{
+    const r = await fetch('/api/download',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({transfer_id:tid, wrapped_session_key:wkey}),
+      credentials:'include'
+    });
+    if(r.ok){
+      const blob = await r.blob();
+      const cd = r.headers.get('Content-Disposition')||'';
+      const name = cd.match(/filename="?([^"]+)"?/)?.[1] || 'decrypted_file';
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href=url; a.download=name; a.click();
+      URL.revokeObjectURL(url);
+      showMsg('dl-msg','✓ File decrypted and integrity verified. Download started.','success');
+    } else {
+      const d = await r.json();
+      showMsg('dl-msg', d.error||'Decryption failed','error');
+    }
+  }catch(e){ showMsg('dl-msg','Network error: '+e.message,'error'); }
+}
+
+// ── File list ──────────────────────────────────────────────────────────
+async function loadFiles(){
+  try{
+    const r = await fetch('/api/files',{credentials:'include'});
+    const files = await r.json();
+    const tb = document.getElementById('files-tbody');
+    if(!files.length){ tb.innerHTML='<tr><td colspan="6" style="color:var(--muted);padding:20px 12px;font-size:12px;">No files stored yet.</td></tr>'; return; }
+    tb.innerHTML = files.map(f => `
+      <tr>
+        <td>${f.original_name}</td>
+        <td style="color:var(--accent2)">${f.sender}</td>
+        <td class="size-badge">${formatSize(f.file_size)}</td>
+        <td style="color:var(--muted)">${f.total_chunks}</td>
+        <td class="hash-cell" title="${f.file_hash}">${f.file_hash}</td>
+        <td class="hash-cell" title="${f.transfer_id}">${f.transfer_id}</td>
+      </tr>`).join('');
+  }catch(e){}
+}
+
+// ── Audit log ──────────────────────────────────────────────────────────
+async function loadAudit(){
+  try{
+    const [ar, sr] = await Promise.all([
+      fetch('/api/audit?limit=200',{credentials:'include'}),
+      fetch('/api/stats',{credentials:'include'}),
+    ]);
+    if(!ar.ok){ document.getElementById('audit-rows').innerHTML='<div style="padding:16px 12px;color:var(--muted);">Insufficient permissions to view audit log.</div>'; return; }
+    const events = await ar.json();
+    const stats  = sr.ok ? await sr.json() : {};
+    const badge  = document.getElementById('chain-audit-badge');
+    badge.innerHTML = stats.log_chain_integrity
+      ? '<span class="chain-badge chain-ok">✓ Chain Intact</span>'
+      : '<span class="chain-badge chain-bad">✗ Chain Broken</span>';
+    document.getElementById('audit-rows').innerHTML = events.map(e => `
+      <div class="audit-row">
+        <span style="color:var(--muted)">${(e.ts||'').slice(0,19).replace('T',' ')}</span>
+        <span style="color:var(--accent2)">${e.event||''}</span>
+        <span>${e.username||''}</span>
+        <span class="${e.outcome==='SUCCESS'?'outcome-ok':'outcome-fail'}">${e.outcome||''}</span>
+        <span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+              title="${e.detail||''}">${e.filename||e.detail||''}</span>
+      </div>`).join('') || '<div style="padding:16px 12px;color:var(--muted)">No events yet.</div>';
+  }catch(e){}
+}
+
+// ── Logout ─────────────────────────────────────────────────────────────
+async function doLogout(){
+  await fetch('/api/logout',{method:'POST',credentials:'include'});
+  window.location='/';
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────
+function showMsg(id, html, type){
+  const el = document.getElementById(id);
+  el.innerHTML = html;
+  el.className = 'msg' + (type?' '+type:'');
+  el.style.display = 'block';
+}
+
+function formatSize(bytes){
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(2) + ' MB';
+}
+</script>
+</body>
+</html>
