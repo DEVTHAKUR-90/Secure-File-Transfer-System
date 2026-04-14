@@ -17,7 +17,6 @@
 [![Flask](https://img.shields.io/badge/Flask-2.x-000000?style=flat-square&logo=flask)](https://flask.palletsprojects.com/)
 [![AES-256](https://img.shields.io/badge/Encryption-AES--256--GCM-success?style=flat-square&logo=letsencrypt)](https://en.wikipedia.org/wiki/AES)
 [![Argon2](https://img.shields.io/badge/Hashing-Argon2-blueviolet?style=flat-square)](https://en.wikipedia.org/wiki/Argon2)
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 *End-to-end encrypted file transfer with role-based access, audit trails, and zero plain-text exposure.*
 
@@ -164,7 +163,7 @@ securetransfer/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/securetransfer.git
+git clone https://github.com/DEVTHAKUR-90/securetransfer.git
 cd securetransfer
 
 # Install dependencies
