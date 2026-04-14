@@ -1,187 +1,269 @@
-# 🔐 Secure File Transfer System
-
-### 🎓 BTech Final Year Project — GRC, Cryptography & Secure Networking
-
----
-
-## 📌 Project Overview
-
-This project implements a **secure file transfer system** designed to ensure:
-
-* 🔐 Confidentiality (AES-256 Encryption)
-* 🧾 Data Integrity (SHA-256 Hashing)
-* 👤 Secure Authentication (Argon2 Password Hashing)
-* 🛡️ Access Control (RBAC)
-* 📊 Audit Logging (GRC Compliance)
-
-The system is built using **Python (Flask)** and follows modern security practices used in real-world systems.
-
----
-
-## 🏗️ System Architecture
-
 ```
-Client (Browser)
-    │
-    │ HTTPS (in production)
-    ▼
-Flask Server (app.py)
- ├── Authentication (auth.py)
- ├── Cryptography Engine (crypto_engine.py)
- ├── File Transfer Logic (file_transfer.py)
- └── Audit Logging (audit_logger.py)
+███████╗███████╗ ██████╗██╗   ██╗██████╗ ███████╗
+██╔════╝██╔════╝██╔════╝██║   ██║██╔══██╗██╔════╝
+███████╗█████╗  ██║     ██║   ██║██████╔╝█████╗
+╚════██║██╔══╝  ██║     ██║   ██║██╔══██╗██╔══╝
+███████║███████╗╚██████╗╚██████╔╝██║  ██║███████╗
+╚══════╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
+
+         S E C U R E   F I L E   T R A N S F E R
 ```
 
+<div align="center">
+
+**BTech Final Year Project — Cryptography, Secure Networking & GRC**
+
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python)](https://python.org/)
+[![Flask](https://img.shields.io/badge/Flask-2.x-000000?style=flat-square&logo=flask)](https://flask.palletsprojects.com/)
+[![AES-256](https://img.shields.io/badge/Encryption-AES--256--GCM-success?style=flat-square&logo=letsencrypt)](https://en.wikipedia.org/wiki/AES)
+[![Argon2](https://img.shields.io/badge/Hashing-Argon2-blueviolet?style=flat-square)](https://en.wikipedia.org/wiki/Argon2)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+
+*End-to-end encrypted file transfer with role-based access, audit trails, and zero plain-text exposure.*
+
+</div>
+
 ---
 
-## 📂 Project Structure
+## Overview
+
+**SecureTransfer** is a cryptographically hardened file transfer system built as a BTech Final Year Project. It goes beyond a typical file-sharing app — every layer of the stack applies real-world security principles drawn from cryptography, GRC (Governance, Risk & Compliance), and secure network design.
+
+Files are encrypted before they ever leave the sender. Passwords are never stored. Every action is logged and tamper-evident. It was designed to behave like a system you'd actually trust.
+
+---
+
+## Security at a Glance
+
+```
+┌──────────────────────┬──────────────────────────────────────────────┐
+│  SECURITY LAYER      │  IMPLEMENTATION                              │
+├──────────────────────┼──────────────────────────────────────────────┤
+│  🔐 Confidentiality  │  AES-256-GCM file encryption                 │
+├──────────────────────┼──────────────────────────────────────────────┤
+│  🔑 Key Exchange     │  RSA-2048 asymmetric key wrapping             │
+├──────────────────────┼──────────────────────────────────────────────┤
+│  🧾 Integrity        │  SHA-256 hash verified pre & post transfer    │
+├──────────────────────┼──────────────────────────────────────────────┤
+│  👤 Authentication   │  Argon2id password hashing, unique salts      │
+├──────────────────────┼──────────────────────────────────────────────┤
+│  🛡️ Access Control   │  RBAC — Admin / Sender / Receiver roles       │
+├──────────────────────┼──────────────────────────────────────────────┤
+│  📊 Audit Logging    │  Chain-hashed logs, IP & timestamp tracking   │
+├──────────────────────┼──────────────────────────────────────────────┤
+│  🔒 Sessions         │  CSPRNG tokens with expiry enforcement        │
+└──────────────────────┴──────────────────────────────────────────────┘
+```
+
+---
+
+## System Architecture
+
+```
+  Client (Browser)
+        │
+        │  HTTPS (TLS in production)
+        ▼
+  ┌─────────────────────────────────────────┐
+  │            Flask Server                 │
+  │                                         │
+  │  ┌─────────────┐  ┌──────────────────┐  │
+  │  │  auth.py    │  │  crypto_engine   │  │
+  │  │  Argon2 +   │  │  AES-256-GCM +   │  │
+  │  │  RBAC +     │  │  RSA-2048 +      │  │
+  │  │  Sessions   │  │  SHA-256         │  │
+  │  └─────────────┘  └──────────────────┘  │
+  │                                         │
+  │  ┌─────────────┐  ┌──────────────────┐  │
+  │  │ file_       │  │  audit_logger    │  │
+  │  │ transfer.py │  │  Chain-hash log  │  │
+  │  │ Chunked I/O │  │  GRC Compliance  │  │
+  │  └─────────────┘  └──────────────────┘  │
+  └─────────────────────────────────────────┘
+        │
+        ▼
+  SQLite (users.db + audit.db)
+```
+
+---
+
+## Transfer Flow
+
+### Sender
+
+```
+  1. Login / Register
+        │
+        ▼
+  2. Generate RSA Key Pair
+        │
+        ▼
+  3. Upload file
+        │   ──▶  AES-256-GCM encryption
+        │   ──▶  SHA-256 hash computed
+        │   ──▶  Chunked write to disk
+        ▼
+  4. Share  [ Transfer ID ]  +  [ Encrypted Key ]  with receiver
+```
+
+### Receiver
+
+```
+  1. Login / Register
+        │
+        ▼
+  2. Generate RSA Key Pair
+        │
+        ▼
+  3. Enter  [ Transfer ID ]  +  [ Encrypted Key ]
+        │
+        ▼
+  4. Download
+        │   ──▶  SHA-256 integrity check
+        │   ──▶  AES-256-GCM decryption
+        ▼
+  5. Verified file delivered ✓
+```
+
+---
+
+## Project Structure
 
 ```
 securetransfer/
-├── app.py
-├── auth.py
-├── crypto_engine.py
-├── file_transfer.py
-├── audit_logger.py
+│
+├── app.py                  # Application entry point & routing
+├── auth.py                 # Argon2 auth, RBAC, session management
+├── crypto_engine.py        # AES-256-GCM, RSA-2048, SHA-256
+├── file_transfer.py        # Chunked upload/download logic
+├── audit_logger.py         # Chain-hashed GRC audit trail
+│
 ├── templates/
-│   ├── index.html
-│   └── dashboard.html
+│   ├── index.html          # Login / landing page
+│   └── dashboard.html      # User dashboard
+│
 ├── requirements.txt
 ├── .env.example
-├── uploads/      (auto-generated)
-├── logs/         (auto-generated)
-├── users.db      (auto-generated)
-└── audit.db      (auto-generated)
+│
+├── uploads/                # Auto-generated at runtime
+├── logs/                   # Auto-generated at runtime
+├── users.db                # Auto-generated at runtime
+└── audit.db                # Auto-generated at runtime
 ```
 
 ---
 
-## 🚀 Features
+## Getting Started
 
-* 🔐 AES-256-GCM Encryption for file security
-* 🔑 RSA-based Key Exchange
-* 🧾 SHA-256 Integrity Verification
-* 👤 Secure Login with Argon2 hashing
-* 🛡️ Role-Based Access Control (Admin, Sender, Receiver)
-* 📊 Audit Logging with tamper detection
-* 📦 Chunk-based file transfer (prevents memory issues)
+### Prerequisites
 
----
+- Python `3.10+`
+- pip
 
-## ⚙️ Setup & Run
-
-### 1. Install dependencies
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/your-username/securetransfer.git
+cd securetransfer
+
+# Install dependencies
 pip install -r requirements.txt
-```
 
-### 2. Configure environment
-
-```bash
+# Configure environment
 cp .env.example .env
 ```
 
-Update `.env`:
+Edit `.env` and update the following before running:
 
-* Change secret key
-* Change admin password
+```env
+SECRET_KEY=your-strong-secret-key
+ADMIN_PASSWORD=your-secure-admin-password
+```
 
----
-
-### 3. Run the application
+### Run
 
 ```bash
 python app.py
 ```
 
-Open in browser:
+Visit `http://127.0.0.1:5000` in your browser.
+
+---
+
+## Audit Logging & GRC Compliance
+
+Every action in the system — login attempts, file uploads, downloads, role changes — is written to a chain-hashed audit log. Each entry links to the previous one cryptographically, making silent tampering detectable.
 
 ```
-http://127.0.0.1:5000
+┌─────────────────────────────────────────────────────────────┐
+│  Log Entry #N                                               │
+│  ─────────────────────────────────────────────────────────  │
+│  User       │  dev@example.com                              │
+│  Action     │  FILE_DOWNLOAD                                │
+│  Timestamp  │  2025-07-14  21:04:17 UTC                     │
+│  IP Address │  192.168.1.42                                 │
+│  Chain Hash │  sha256(entry[N-1] + entry[N])                │
+└─────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## 👨‍💻 Usage Flow
-
-### 🔄 Sender
-
-1. Login/Register
-2. Generate RSA Key Pair
-3. Upload & encrypt file
-4. Share Transfer ID + Key with receiver
-
-### 📥 Receiver
-
-1. Login/Register
-2. Generate RSA Key Pair
-3. Enter Transfer ID + Key
-4. Download decrypted file
+This design supports compliance requirements around traceability and non-repudiation.
 
 ---
 
-## 🔐 Security Implementation
+## Production Deployment
 
-### Password Security
+This project ships with a development server. For a production deployment:
 
-* Argon2 hashing
-* Unique salt per user
-* No plain-text passwords stored
+```bash
+# Install Gunicorn
+pip install gunicorn
 
-### Encryption
+# Run with Gunicorn
+gunicorn -w 4 -b 0.0.0.0:8000 app:app
+```
 
-* AES-256-GCM for file encryption
-* RSA-2048 for key exchange
+Pair with **Nginx** as a reverse proxy and enable **TLS** via Let's Encrypt for full HTTPS support.
 
-### Integrity
-
-* SHA-256 hash verification before and after transfer
-
-### Secure Sessions
-
-* Tokens generated using CSPRNG
-* Session expiry implemented
+> ⚠️ Always change default admin credentials before any deployment. The `.env.example` file documents every value that must be rotated.
 
 ---
 
-## 📊 Audit Logging (GRC)
+## Testing
 
-* Logs include user activity, timestamps, and IP
-* Chain-hash ensures tamper detection
-* Supports system monitoring and compliance
-
----
-
-## ⚠️ Important Notes
-
-* Default admin credentials must be changed
-* Development server is used (not production-ready)
-* Use **Gunicorn + Nginx** for deployment
+| Test Area | Method |
+|-----------|--------|
+| Encryption / Decryption | Standalone Python scripts against known vectors |
+| File Integrity | SHA-256 comparison pre and post transfer |
+| Network exposure | Packet capture confirms only ciphertext is transmitted |
+| Auth hardening | Verified no plain-text credentials in DB or logs |
 
 ---
 
-## 🧪 Testing
+## Roadmap
 
-* Encryption and decryption tested using Python scripts
-* File integrity verified using SHA-256
-* Network sniffing shows encrypted data only
-
----
-
-## 🚀 Future Improvements
-
-* Full client-side E2EE
-* HTTPS deployment
-* Cloud storage integration
-* Advanced dashboard UI
+- [x] AES-256-GCM file encryption
+- [x] RSA-2048 key exchange
+- [x] Argon2id password hashing
+- [x] Role-based access control
+- [x] Chain-hashed audit logging
+- [ ] Full client-side end-to-end encryption
+- [ ] HTTPS / TLS deployment guide
+- [ ] Cloud storage backend (S3-compatible)
+- [ ] Advanced admin dashboard with log visualisation
 
 ---
 
-## 👨‍💻 Author
+## Author
 
-**DEV THAKUR**
+**Dev Thakur**
+
+Cybersecurity enthusiast and developer focused on building systems where security is a first-class concern — not an afterthought.
+
+[![GitHub](https://img.shields.io/badge/GitHub-DevThakur-181717?style=flat-square&logo=github)](https://github.com/DEVTHAKUR-90)
 
 ---
 
-*This project demonstrates secure system design using cryptography, networking, and GRC principles.*
+<div align="center">
+  <sub>Built as a BTech Final Year Project — demonstrating cryptography, secure networking, and GRC principles in practice.</sub>
+</div>
