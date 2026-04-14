@@ -163,7 +163,7 @@ securetransfer/
 
 ```bash
 # Clone the repository
-git clone https://github.com/DEVTHAKUR-90/securetransfer.git
+git clone https://github.com/DEVTHAKUR-90/Secure-File-Transfer-System.git
 cd securetransfer
 
 # Install dependencies
